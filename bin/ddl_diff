@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eou pipefail
+
+_dir="$(dirname "${BASH_SOURCE[0]}")"
+
+DB_NAME="dogwalkr"
+PG_DUMP_ARGS=("--quote-all-identifiers" "--no-owner" "--no-privileges" "--no-acl" "--no-security-labels" "--schema-only")
+SQL_PATH="$_dir/../sql/dogwalkr.sql"
+
+if [ -z "$("$_dir"/env_psql psql -lqt | cut -d \| -f 1 | grep -w "$DB_NAME")" ]; then
+    echo "Database doesn't exist."
+    exit 1
+fi
+
+if [ ! -z "$(diff -w <("$_dir"/env_psql pg_dump "$DB_NAME" "${PG_DUMP_ARGS[@]}" | sed -e '/^--/d') "$SQL_PATH")" ]; then
+    echo "DB Schemas are out of sync."
+    diff -w <("$_dir"/env_psql pg_dump "$DB_NAME" "${PG_DUMP_ARGS[@]}" | sed -e '/^--/d') "$SQL_PATH"
+    exit 1
+fi
+
+echo "SQL Diff completed - schema is valid."
+exit 0

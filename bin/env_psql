@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -eou pipefail
+
+psql_user=${PSQL_USER:-"dogwalkr"}
+user_arg=
+if [ "$psql_user" != "" ]; then
+    user_arg="-U ${psql_user}"
+fi
+
+# default to dev environment - psql is on "db" container
+psql_host=${PSQL_HOST:-"db"}
+
+# if we're on CircleCI, then set to "localhost"
+if [ ! -z ${CIRCLECI:-""} ]; then
+    psql_host="localhost"
+fi
+
+host_arg=
+if [ "$psql_host" != "" ]; then
+    host_arg="-h ${psql_host}"
+fi
+
+"$@" $user_arg $host_arg

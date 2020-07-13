@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  api:
+    image: dogwalkr:dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/dogwalkr/
+    networks: ["public", "private"]
+    dns: ["8.8.8.8"]
+    env_file:
+      - .docker/.env
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--reload"]
+    depends_on:
+      - "db"
+    stdin_open: true
+    tty: true
+
+  db:
+    image: postgres:11.6-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    networks: ["private"]
+    env_file: .docker/.env
+    volumes:
+      - .docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d/
+      - postgres-data:/var/lib/postgresql/data
+
+  pgweb:
+    image: sosedoff/pgweb
+    ports:
+      - "5433:5433"
+    networks: ["private"]
+    env_file: .docker/.env
+    depends_on:
+      - db
+    command:
+      [
+        "/usr/bin/pgweb",
+        "--bind=0.0.0.0",
+        "--listen=5433",
+        "--url=postgres://dogwalkr:dogwalkr@db:5432/dogwalkr?sslmode=disable",
+      ]
+
+networks:
+  public:
+  private:
+
+volumes:
+  postgres-data:
