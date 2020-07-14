@@ -23,10 +23,12 @@ def main():
 @app.get("/dogs/", response_model=List[Dog])
 def get_dogs():
     with DogsContextManager() as manager:
-        return manager.get_dogs(name="test")
+        results, _ = manager.get_dogs(name="test")
+        return results
 
 
 @app.get("/users/", response_model=List[User])
 def get_users():
     with UsersContextManager() as manager:
-        return manager.get_users(user_id=1)
+        results, _ = manager.get_users(user_id=1)
+        return results
