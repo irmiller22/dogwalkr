@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel
+
+from ..common.schema import Meta
 
 
 class User(BaseModel):
@@ -11,3 +14,8 @@ class User(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class UsersResponse(BaseModel):
+    meta: Meta
+    users: List[User]

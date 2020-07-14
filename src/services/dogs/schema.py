@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel
+
+from ..common.schema import Meta
 
 
 class Dog(BaseModel):
@@ -12,3 +15,8 @@ class Dog(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class DogsResponse(BaseModel):
+    meta: Meta
+    dogs: List[Dog]
