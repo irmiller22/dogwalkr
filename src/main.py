@@ -11,8 +11,6 @@ from src.services.common.models import Base
 from src.services.dogs.db import DogsContextManager, DogDAO
 from src.services.users.db import UsersContextManager, UserDAO
 
-Base.metadata.create_all(bind=engine)
-
 
 app = FastAPI()
 
