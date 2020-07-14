@@ -24,11 +24,11 @@ def main():
 def get_dogs():
     with DogsContextManager() as manager:
         results, _ = manager.get_dogs(name="test")
-        return results
+        return [Dog.from_orm(result) for result in results]
 
 
 @app.get("/users/", response_model=List[User])
 def get_users():
     with UsersContextManager() as manager:
         results, _ = manager.get_users(user_id=1)
-        return results
+        return [User.from_orm(result) for result in results]

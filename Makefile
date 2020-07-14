@@ -21,5 +21,8 @@ migration:
 purge:
 	docker-compose down --volumes --remove-orphans
 
+shell:
+	docker-compose exec api /bin/bash
+
 
 .PHONY: build init logs purge
