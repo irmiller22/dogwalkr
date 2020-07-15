@@ -1,5 +1,7 @@
+import graphene
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
+from starlette.graphql import GraphQLApp
 
 
 from src.services.dogs.schema import (
@@ -21,7 +23,15 @@ from src.services.dogs.db import DogsContextManager
 from src.services.users.db import UsersContextManager
 
 
+class Query(graphene.ObjectType):
+    hello = graphene.String(name=graphene.String(default_value="stranger"))
+
+    def resolve_hello(self, info, name):
+        return "Hello " + name
+
+
 app = FastAPI()
+app.add_route("/graphql", GraphQLApp(schema=graphene.Schema(query=Query)))
 
 
 @app.get("/")
