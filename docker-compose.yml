@@ -34,8 +34,7 @@ services:
       - "5433:5433"
     networks: ["private"]
     env_file: .docker/.env
-    depends_on:
-      - db
+    depends_on: ["db", "api"]
     command:
       [
         "/usr/bin/pgweb",
