@@ -1,4 +1,5 @@
 from contextlib import ContextDecorator
+from datetime import datetime
 from typing import Any, List, Optional, Tuple
 
 from sqlalchemy import func, Column, Integer, String
@@ -66,16 +67,32 @@ class UsersContextManager(ContextDecorator):
     def get_user_by_id(self, user_id: int) -> Optional[UserDAO]:
         """
         Get user by ID.
+
         :param user_id int: ID of user.
         :rtype: UserDAO or None
         """
         if not user_id:
-            raise Exception("The 'tc_id' parameter must be passed.")
+            raise Exception("The 'user_id' parameter must be passed.")
 
         dao = self.session.query(UserDAO).filter_by(id=user_id).one_or_none()
         return dao
 
-    def _get_count(self, query: Any) -> int:
+    def create_user(self, name: str) -> UserDAO:
+        """
+        Create user.
+
+        :param user_id int: ID of user.
+        :rtype: UserDAO
+        """
+        now = datetime.utcnow()
+        dao = UserDAO(name=name, created_at=now, updated_at=now)
+        self.session.add(dao)
+        self.session.commit()
+
+        return dao
+
+    @staticmethod
+    def _get_count(query: Any) -> int:
         count_q = query.statement.with_only_columns([func.count()]).order_by(None)
         count = query.session.execute(count_q).scalar()
         return count

@@ -16,6 +16,14 @@ class User(BaseModel):
         orm_mode = True
 
 
+class CreateUser(BaseModel):
+    name: str
+
+
+class UserResponse(BaseModel):
+    user: User
+
+
 class UsersResponse(BaseModel):
     meta: Meta
     users: List[User]

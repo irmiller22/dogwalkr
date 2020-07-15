@@ -17,6 +17,15 @@ class Dog(BaseModel):
         orm_mode = True
 
 
+class DogResponse(BaseModel):
+    dog: Dog
+
+
 class DogsResponse(BaseModel):
     meta: Meta
     dogs: List[Dog]
+
+
+class CreateDog(BaseModel):
+    name: str
+    owner_id: int
