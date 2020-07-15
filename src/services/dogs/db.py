@@ -44,7 +44,7 @@ class DogsContextManager(ContextDecorator):
     def get_dogs(
         self,
         name: Optional[str] = None,
-        owner_ids: Optional[List[int]] = None,
+        owner_id: Optional[int] = None,
         sort: Optional[str] = "created_at",
         order: Optional[str] = "desc",
         limit: Optional[int] = 100,
@@ -53,21 +53,18 @@ class DogsContextManager(ContextDecorator):
         """
         Gets Dog objects based on parameters passed in.
         :param name str:                      Name of dog.
-        :param owner_ids list(int):           List of owner IDs.
+        :param owner_id int:                  ID of owner.
         :param sort str:                      Attribute to sort by.
         :param order str:                     Sort order ('asc' or 'desc').
         :param limit int:                     Limit for results in response.
         :param offset int:                    Offset for results in response.
         :rtype: list(DogDAO), int
         """
-        if not (name or owner_ids):
-            raise Exception("A parameter must be passed.")
-
         query = self.session.query(DogDAO)
         if name:
             query = query.filter(DogDAO.name == name)
-        if owner_ids:
-            query = query.filter(DogDAO.owner_id.in_(owner_ids))
+        if owner_id:
+            query = query.filter(DogDAO.owner_id == owner_id)
 
         # count
         count = self._get_count(query)

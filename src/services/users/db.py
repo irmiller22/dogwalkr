@@ -47,10 +47,8 @@ class UsersContextManager(ContextDecorator):
         :param user_id int:     ID of user.
         :rtype: list(UserDAO), int
         """
-        if not (name or user_id):
-            raise Exception("A parameter must be passed.")
         if name and user_id:
-            raise Exception("Only one parameter maybe passed.")
+            raise Exception("Only one parameter may be passed.")
 
         query = self.session.query(UserDAO)
         if name:

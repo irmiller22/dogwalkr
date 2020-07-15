@@ -30,11 +30,26 @@ def main():
 
 
 @app.get("/dogs/", response_model=DogsResponse, tags=["Dogs"])
-def get_dogs():
+def get_dogs(
+    name: str = None,
+    owner_id: int = None,
+    sort: str = "created_at",
+    order: str = "desc",
+    limit: int = 100,
+    offset: int = 0,
+):
     with DogsContextManager() as manager:
-        results, count = manager.get_dogs(name="test")
+        results, count = manager.get_dogs(
+            name=name,
+            owner_id=owner_id,
+            sort=sort,
+            order=order,
+            limit=limit,
+            offset=offset,
+        )
         return DogsResponse(
-            meta=Meta(total=count), dogs=[Dog.from_orm(result) for result in results]
+            meta=Meta(total=count, sort=sort, order=order, limit=limit, offset=offset,),
+            dogs=[Dog.from_orm(result) for result in results],
         )
 
 
