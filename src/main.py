@@ -1,4 +1,5 @@
 import graphene
+from graphene_pydantic import PydanticObjectType
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
 from starlette.graphql import GraphQLApp
@@ -23,15 +24,84 @@ from src.services.dogs.db import DogsContextManager
 from src.services.users.db import UsersContextManager
 
 
-class Query(graphene.ObjectType):
-    hello = graphene.String(name=graphene.String(default_value="stranger"))
+# GraphQL
+class GQLUser(PydanticObjectType):
+    class Meta:
+        model = User
 
-    def resolve_hello(self, info, name):
-        return "Hello " + name
+
+class GQLCreateUser(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+
+    ok = graphene.Boolean()
+    user = graphene.Field(lambda: GQLUser)
+
+    def mutate(root, info, name: str):
+        with UsersContextManager() as manager:
+            user = manager.create_user(name=name)
+            return GQLCreateUser(user=User.from_orm(user), ok=True)
+
+
+class GQLDog(PydanticObjectType):
+    class Meta:
+        model = Dog
+
+
+class GQLCreateDog(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+        owner_id = graphene.Int(required=True)
+
+    ok = graphene.Boolean()
+    dog = graphene.Field(lambda: GQLDog)
+
+    def mutate(root, info, name: str, owner_id: int):
+        with DogsContextManager() as manager:
+            dog = manager.create_dog(name=name, owner_id=owner_id)
+            return GQLCreateDog(dog=Dog.from_orm(dog), ok=True)
+
+
+class Query(graphene.ObjectType):
+    dogs = graphene.List(
+        GQLDog,
+        name=graphene.String(required=False),
+        owner_id=graphene.Int(required=False),
+    )
+    users = graphene.List(GQLUser)
+    dog = graphene.Field(GQLDog, dog_id=graphene.Int())
+    user = graphene.Field(GQLUser, user_id=graphene.Int())
+
+    def resolve_dogs(self, info, name: str = None, owner_id: int = None):
+        with DogsContextManager() as manager:
+            results, _ = manager.get_dogs(name=name, owner_id=owner_id)
+            return [Dog.from_orm(result) for result in results]
+
+    def resolve_users(self, info):
+        with UsersContextManager() as manager:
+            results, _ = manager.get_users()
+            return [User.from_orm(result) for result in results]
+
+    def resolve_dog(self, info, dog_id: int):
+        with DogsContextManager() as manager:
+            result = manager.get_dog_by_id(dog_id=dog_id)
+            return Dog.from_orm(result)
+
+    def resolve_user(self, info, user_id: int):
+        with UsersContextManager() as manager:
+            result = manager.get_user_by_id(user_id=user_id)
+            return User.from_orm(result)
+
+
+class Mutations(graphene.ObjectType):
+    create_dog = GQLCreateDog.Field()
+    create_user = GQLCreateUser.Field()
 
 
 app = FastAPI()
-app.add_route("/graphql", GraphQLApp(schema=graphene.Schema(query=Query)))
+app.add_route(
+    "/graphql", GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutations))
+)
 
 
 @app.get("/")

@@ -1,11 +1,13 @@
 from datetime import datetime
 from typing import List
 
+import graphene
 from pydantic import BaseModel
 
 from ..common.schema import Meta
 
 
+# REST
 class Dog(BaseModel):
     id: int
     name: str
