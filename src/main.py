@@ -21,7 +21,7 @@ def main():
     return RedirectResponse(url="/docs/")
 
 
-@app.get("/dogs/", response_model=DogsResponse)
+@app.get("/dogs/", response_model=DogsResponse, tags=["Dogs"])
 def get_dogs():
     with DogsContextManager() as manager:
         results, count = manager.get_dogs(name="test")
@@ -30,7 +30,7 @@ def get_dogs():
         )
 
 
-@app.get("/users/", response_model=UsersResponse)
+@app.get("/users/", response_model=UsersResponse, tags=["Users"])
 def get_users():
     with UsersContextManager() as manager:
         results, count = manager.get_users(user_id=1)
