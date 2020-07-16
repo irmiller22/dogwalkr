@@ -14,19 +14,27 @@ class Meta(BaseModel):
     order: Optional[str]
 
 
-class DogsResponse(BaseModel):
-    meta: Meta
-    dogs: List[Dog]
-
-
-class DogWithOwners(Dog):
+class DogWithOwner(Dog):
     owner: User
 
 
-class UsersResponse(BaseModel):
+class DogResponse(BaseModel):
+    dog: DogWithOwner
+
+
+class DogsResponse(BaseModel):
     meta: Meta
-    users: List[User]
+    dogs: List[DogWithOwner]
 
 
 class UserWithDogs(User):
     dogs: List[Dog]
+
+
+class UserResponse(BaseModel):
+    user: UserWithDogs
+
+
+class UsersResponse(BaseModel):
+    meta: Meta
+    users: List[UserWithDogs]
