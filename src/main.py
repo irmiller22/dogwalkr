@@ -1,7 +1,8 @@
 import graphene
-from graphene_pydantic import PydanticObjectType
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
+from graphene_pydantic import PydanticObjectType
+from graphql.execution.executors.asyncio import AsyncioExecutor
 from starlette.graphql import GraphQLApp
 
 
@@ -116,17 +117,21 @@ class Mutations(graphene.ObjectType):
 
 app = FastAPI()
 app.add_route(
-    "/graphql", GraphQLApp(schema=graphene.Schema(query=Query, mutation=Mutations))
+    "/graphql",
+    GraphQLApp(
+        schema=graphene.Schema(query=Query, mutation=Mutations),
+        executor_class=AsyncioExecutor,
+    ),
 )
 
 
 @app.get("/")
-def main():
+async def main():
     return RedirectResponse(url="/redoc/")
 
 
 @app.get("/dogs/", response_model=DogsResponse, tags=["Dogs"])
-def get_dogs(
+async def get_dogs(
     name: str = None,
     owner_id: int = None,
     sort: str = "created_at",
@@ -150,14 +155,14 @@ def get_dogs(
 
 
 @app.get("/dogs/{dog_id}", response_model=DogResponse, tags=["Dogs"])
-def get_dog(dog_id: int):
+async def get_dog(dog_id: int):
     with DogsContextManager() as manager:
         dog = manager.get_dog_by_id(dog_id)
         return DogResponse(dog=DogWithOwner.from_orm(dog))
 
 
 @app.post("/dogs/", response_model=DogResponse, status_code=201, tags=["Dogs"])
-def post_dogs(dog: CreateDog):
+async def post_dogs(dog: CreateDog):
     with DogsContextManager() as manager:
         try:
             dog = manager.create_dog(name=dog.name, owner_id=dog.owner_id)
@@ -167,7 +172,7 @@ def post_dogs(dog: CreateDog):
 
 
 @app.get("/users/", response_model=UsersResponse, tags=["Users"])
-def get_users():
+async def get_users():
     with UsersContextManager() as manager:
         results, count = manager.get_users(user_id=1)
         return UsersResponse(
@@ -177,14 +182,14 @@ def get_users():
 
 
 @app.get("/users/{user_id}", response_model=UserResponse, tags=["Users"])
-def get_user(user_id: int):
+async def get_user(user_id: int):
     with UsersContextManager() as manager:
         user = manager.get_user_by_id(user_id)
         return UserResponse(user=UserWithDogs.from_orm(user))
 
 
 @app.post("/users/", response_model=UserResponse, status_code=201, tags=["Users"])
-def post_users(user: CreateUser):
+async def post_users(user: CreateUser):
     with UsersContextManager() as manager:
         user = manager.create_user(name=user.name)
         return UserResponse(user=User.from_orm(user))
