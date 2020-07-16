@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, List, Optional, Tuple
 
 from sqlalchemy import func, desc, Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.types import DateTime
 
 from .constants import DOG_ORDER_QUERY_PARAM_MAP
@@ -17,6 +18,7 @@ class DogDAO(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255))
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner = relationship("UserDAO", back_populates="dogs")
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
 

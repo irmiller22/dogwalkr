@@ -9,17 +9,21 @@ from src.services.dogs.schema import (
     CreateDog,
     Dog,
     DogResponse,
-    DogsResponse,
 )
 from src.services.users.schema import (
     CreateUser,
     User,
     UserResponse,
-    UsersResponse,
 )
 from src.services.common.db import engine
 from src.services.common.models import Base
-from src.services.common.schema import Meta
+from src.services.common.schema import (
+    Meta,
+    DogWithOwners,
+    UserWithDogs,
+    UsersResponse,
+    DogsResponse,
+)
 from src.services.dogs.db import DogsContextManager
 from src.services.users.db import UsersContextManager
 
