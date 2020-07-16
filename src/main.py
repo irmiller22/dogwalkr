@@ -8,18 +8,20 @@ from starlette.graphql import GraphQLApp
 from src.services.dogs.schema import (
     CreateDog,
     Dog,
-    DogResponse,
-    DogsResponse,
 )
 from src.services.users.schema import (
     CreateUser,
     User,
+)
+from src.services.common.schema import (
+    Meta,
+    DogResponse,
+    DogsResponse,
+    DogWithOwner,
     UserResponse,
     UsersResponse,
+    UserWithDogs,
 )
-from src.services.common.db import engine
-from src.services.common.models import Base
-from src.services.common.schema import Meta
 from src.services.dogs.db import DogsContextManager
 from src.services.users.db import UsersContextManager
 
@@ -28,6 +30,13 @@ from src.services.users.db import UsersContextManager
 class GQLUser(PydanticObjectType):
     class Meta:
         model = User
+
+    dogs = graphene.List("src.main.GQLDog")
+
+    def resolve_dogs(self, info):
+        with DogsContextManager() as manager:
+            results, _ = manager.get_dogs(owner_id=self.id)
+            return [Dog.from_orm(result) for result in results]
 
 
 class GQLCreateUser(graphene.Mutation):
@@ -46,6 +55,13 @@ class GQLCreateUser(graphene.Mutation):
 class GQLDog(PydanticObjectType):
     class Meta:
         model = Dog
+
+    owner = graphene.Field("src.main.GQLUser")
+
+    def resolve_owner(self, info):
+        with UsersContextManager() as manager:
+            owner = manager.get_user_by_id(user_id=self.owner_id)
+            return User.from_orm(owner)
 
 
 class GQLCreateDog(graphene.Mutation):
@@ -129,7 +145,7 @@ def get_dogs(
         )
         return DogsResponse(
             meta=Meta(total=count, sort=sort, order=order, limit=limit, offset=offset,),
-            dogs=[Dog.from_orm(result) for result in results],
+            dogs=[DogWithOwner.from_orm(result) for result in results],
         )
 
 
@@ -137,7 +153,7 @@ def get_dogs(
 def get_dog(dog_id: int):
     with DogsContextManager() as manager:
         dog = manager.get_dog_by_id(dog_id)
-        return DogResponse(dog=Dog.from_orm(dog))
+        return DogResponse(dog=DogWithOwner.from_orm(dog))
 
 
 @app.post("/dogs/", response_model=DogResponse, status_code=201, tags=["Dogs"])
@@ -147,7 +163,7 @@ def post_dogs(dog: CreateDog):
             dog = manager.create_dog(name=dog.name, owner_id=dog.owner_id)
         except Exception as e:
             raise HTTPException(status_code=404, detail=str(e))
-        return DogResponse(dog=Dog.from_orm(dog))
+        return DogResponse(dog=DogWithOwner.from_orm(dog))
 
 
 @app.get("/users/", response_model=UsersResponse, tags=["Users"])
@@ -155,7 +171,8 @@ def get_users():
     with UsersContextManager() as manager:
         results, count = manager.get_users(user_id=1)
         return UsersResponse(
-            meta=Meta(total=count), users=[User.from_orm(result) for result in results]
+            meta=Meta(total=count),
+            users=[UserWithDogs.from_orm(result) for result in results],
         )
 
 
@@ -163,7 +180,7 @@ def get_users():
 def get_user(user_id: int):
     with UsersContextManager() as manager:
         user = manager.get_user_by_id(user_id)
-        return UserResponse(user=User.from_orm(user))
+        return UserResponse(user=UserWithDogs.from_orm(user))
 
 
 @app.post("/users/", response_model=UserResponse, status_code=201, tags=["Users"])

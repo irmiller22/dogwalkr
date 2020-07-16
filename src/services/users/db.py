@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, List, Optional, Tuple
 
 from sqlalchemy import func, Column, Integer, String
+from sqlalchemy.orm import relationship
 from sqlalchemy.types import DateTime
 
 from ..common.db import Session
@@ -16,6 +17,8 @@ class UserDAO(Base):
     name = Column(String(255))
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+    dogs = relationship("DogDAO", back_populates="owner")
 
 
 class UsersContextManager(ContextDecorator):

@@ -1,31 +1,10 @@
-from datetime import datetime
-from typing import List
-
-import graphene
 from pydantic import BaseModel
+from pydantic_sqlalchemy import sqlalchemy_to_pydantic
 
-from ..common.schema import Meta
-
-
-# REST
-class Dog(BaseModel):
-    id: int
-    name: str
-    owner_id: int
-    created_at: datetime
-    updated_at: datetime
-
-    class Config:
-        orm_mode = True
+from .db import DogDAO
 
 
-class DogResponse(BaseModel):
-    dog: Dog
-
-
-class DogsResponse(BaseModel):
-    meta: Meta
-    dogs: List[Dog]
+Dog = sqlalchemy_to_pydantic(DogDAO)
 
 
 class CreateDog(BaseModel):
