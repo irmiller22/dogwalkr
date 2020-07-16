@@ -33,6 +33,13 @@ class GQLUser(PydanticObjectType):
     class Meta:
         model = User
 
+    dogs = graphene.List("src.main.GQLDog")
+
+    def resolve_dogs(self, info):
+        with DogsContextManager() as manager:
+            results, _ = manager.get_dogs(owner_id=self.id)
+            return [Dog.from_orm(result) for result in results]
+
 
 class GQLCreateUser(graphene.Mutation):
     class Arguments:
@@ -50,6 +57,13 @@ class GQLCreateUser(graphene.Mutation):
 class GQLDog(PydanticObjectType):
     class Meta:
         model = Dog
+
+    owner = graphene.Field("src.main.GQLUser")
+
+    def resolve_owner(self, info):
+        with UsersContextManager() as manager:
+            owner = manager.get_user_by_id(user_id=self.owner_id)
+            return User.from_orm(owner)
 
 
 class GQLCreateDog(graphene.Mutation):
