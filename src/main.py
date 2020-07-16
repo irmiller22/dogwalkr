@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from graphene_pydantic import PydanticObjectType
 from graphql.execution.executors.asyncio import AsyncioExecutor
 from starlette.graphql import GraphQLApp
-
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.services.dogs.schema import (
     CreateDog,
@@ -25,7 +25,7 @@ from src.services.common.schema import (
 )
 from src.services.dogs.db import DogsContextManager
 from src.services.users.db import UsersContextManager
-
+from fastapi.middleware.cors import CORSMiddleware
 
 # GraphQL
 class GQLUser(PydanticObjectType):
@@ -116,6 +116,20 @@ class Mutations(graphene.ObjectType):
 
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:3000",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.add_route(
     "/graphql",
     GraphQLApp(
