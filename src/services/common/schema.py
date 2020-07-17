@@ -28,7 +28,7 @@ class DogsResponse(BaseModel):
 
 
 class UserWithDogs(User):
-    dogs: List[Dog]
+    dogs: List[Dog] = []
 
 
 class UserResponse(BaseModel):

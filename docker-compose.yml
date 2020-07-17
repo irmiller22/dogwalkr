@@ -21,7 +21,7 @@ services:
     image: postgres:11.6-alpine
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - 5432
     networks: ["private"]
     env_file: .docker/.env
     volumes:
@@ -32,9 +32,11 @@ services:
     image: sosedoff/pgweb
     ports:
       - "5433:5433"
+    links:
+      - db:db
     networks: ["private"]
     env_file: .docker/.env
-    depends_on: ["db", "api"]
+    depends_on: ["db"]
     command:
       [
         "/usr/bin/pgweb",
